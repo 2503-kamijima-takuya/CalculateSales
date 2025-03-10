@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +38,19 @@ public class CalculateSales {
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
+		// すべてのファイルを取得する。
+		File[] files = new File(args[0]).listFiles();
+		// 「ファイル名が数字8桁で、拡張子が rcd」のファイルを格納するためのList
+		ArrayList<File> rcdFiles = new ArrayList<File>();
+
+		//files配列内の売上ファイルだけをrcdFilesリストへ格納する処理
+		for(int i = 0; i < files.length; i++) {
+			if(files[i].getName().matches("^[0-9]{8}.+rcd")) {
+				rcdFiles.add(files[i]);
+			}
+		}
+
+
 
 
 
@@ -68,8 +82,15 @@ public class CalculateSales {
 			// 一行ずつ読み込む
 			while((line = br.readLine()) != null) {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
-				System.out.println(line);
+				String[] items = line.split(",");
+				branchNames.put(items[0], items[1]);
+				branchSales.put(items[0], 0L);
 			}
+
+//			"branchNames"に格納した「支店コード」および「支店名」を表示コード
+//			for(String key : branchNames.keySet()) {
+//				System.out.println(key + " " + branchNames.get(key));
+//			}
 
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
