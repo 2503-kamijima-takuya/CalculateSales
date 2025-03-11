@@ -39,6 +39,8 @@ public class CalculateSales {
 			return;
 		}
 
+
+
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
 		// ディレクトリ内すべてのファイルを取得する。
 		File[] files = new File(args[0]).listFiles();
@@ -47,12 +49,13 @@ public class CalculateSales {
 
 		//files配列内の売上ファイルだけをrcdFilesリストへ格納する処理
 		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().matches("^[0-9]{8}.+rcd")) {
+			if(files[i].getName().matches("^[0-9]{8}.rcd$")) {
 				rcdFiles.add(files[i]);
 			}
 		}
 
 
+		String rcdLine;
 		BufferedReader rcdBr = null;
 
 		//各売上集計ファイルを読込み、支店の合計売上として計上する処理
@@ -60,14 +63,20 @@ public class CalculateSales {
 			try {
 				FileReader rcdFr = new FileReader(rcdFiles.get(i));
 				rcdBr = new BufferedReader(rcdFr);
+				ArrayList<String> codeAndSales = new ArrayList<String>();
 
-				String branchCode = rcdBr.readLine();
-				Long sale = Long.parseLong(rcdBr.readLine());
+				while((rcdLine = rcdBr.readLine()) != null) {
+					codeAndSales.add(rcdLine);
+				}
+
+				String branchCode = codeAndSales.get(0);
+				long sale = Long.parseLong(codeAndSales.get(1));
 				Long saleAmount = branchSales.get(branchCode) + sale;
-				branchSales.replace(branchCode, saleAmount);
+				branchSales.put(branchCode, saleAmount);
 
 			} catch(IOException e) {
 				System.out.println(UNKNOWN_ERROR);
+				return;
 			} finally {
 				if(rcdBr != null) {
 					try {
@@ -75,13 +84,11 @@ public class CalculateSales {
 						rcdBr.close();
 					} catch(IOException e) {
 						System.out.println(UNKNOWN_ERROR);
+						return;
 					}
 				}
 			}
 		}
-
-
-
 
 
 
@@ -106,6 +113,14 @@ public class CalculateSales {
 
 		try {
 			File file = new File(path, fileName);
+
+//			ファイルが存在しなかった場合は終了する処理
+			if(!file.exists()) {
+				System.out.println("支店定義ファイルが存在しません");
+				return false;
+			}
+
+
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
