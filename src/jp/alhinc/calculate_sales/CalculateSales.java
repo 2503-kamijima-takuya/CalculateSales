@@ -1,8 +1,10 @@
 package jp.alhinc.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ public class CalculateSales {
 		}
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
-		// すべてのファイルを取得する。
+		// ディレクトリ内すべてのファイルを取得する。
 		File[] files = new File(args[0]).listFiles();
 		// 「ファイル名が数字8桁で、拡張子が rcd」のファイルを格納するためのList
 		ArrayList<File> rcdFiles = new ArrayList<File>();
@@ -49,6 +51,35 @@ public class CalculateSales {
 				rcdFiles.add(files[i]);
 			}
 		}
+
+
+		BufferedReader rcdBr = null;
+
+		//各売上集計ファイルを読込み、支店の合計売上として計上する処理
+		for(int i = 0; i < rcdFiles.size(); i++) {
+			try {
+				FileReader rcdFr = new FileReader(rcdFiles.get(i));
+				rcdBr = new BufferedReader(rcdFr);
+
+				String branchCode = rcdBr.readLine();
+				Long sale = Long.parseLong(rcdBr.readLine());
+				Long saleAmount = branchSales.get(branchCode) + sale;
+				branchSales.replace(branchCode, saleAmount);
+
+			} catch(IOException e) {
+				System.out.println(UNKNOWN_ERROR);
+			} finally {
+				if(rcdBr != null) {
+					try {
+						// ファイルを閉じる
+						rcdBr.close();
+					} catch(IOException e) {
+						System.out.println(UNKNOWN_ERROR);
+					}
+				}
+			}
+		}
+
 
 
 
@@ -87,11 +118,6 @@ public class CalculateSales {
 				branchSales.put(items[0], 0L);
 			}
 
-//			"branchNames"に格納した「支店コード」および「支店名」を表示コード
-//			for(String key : branchNames.keySet()) {
-//				System.out.println(key + " " + branchNames.get(key));
-//			}
-
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
 			return false;
@@ -121,7 +147,32 @@ public class CalculateSales {
 	 */
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
+		BufferedWriter bw = null;
 
+		try {
+			File writeFile = new File(path, fileName);
+			FileWriter fw = new FileWriter(writeFile);
+			bw = new BufferedWriter(fw);
+
+			for(String key : branchNames.keySet()) {
+				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+				bw.newLine();
+			}
+		} catch(IOException e) {
+			System.out.println(UNKNOWN_ERROR);
+			return false;
+		} finally {
+			// ファイルを開いている場合
+						if(bw != null) {
+							try {
+								// ファイルを閉じる
+								bw.close();
+							} catch(IOException e) {
+								System.out.println(UNKNOWN_ERROR);
+								return false;
+							}
+						}
+		}
 		return true;
 	}
 
