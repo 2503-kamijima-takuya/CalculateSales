@@ -34,12 +34,16 @@ public class CalculateSales {
 		// 支店コードと売上金額を保持するMap
 		Map<String, Long> branchSales = new HashMap<>();
 
+		// コマンドライン引数が渡されているか確認する処理
+		if (args.length != 1) {
+			System.out.println(UNKNOWN_ERROR);
+			return;
+		}
+
 		// 支店定義ファイル読み込み処理
 		if(!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales)) {
 			return;
 		}
-
-
 
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
 		// ディレクトリ内すべてのファイルを取得する。
@@ -49,11 +53,10 @@ public class CalculateSales {
 
 		//files配列内の売上ファイルだけをrcdFilesリストへ格納する処理
 		for(int i = 0; i < files.length; i++) {
-			if(files[i].getName().matches("^[0-9]{8}.rcd$")) {
+			if(files[i].isFile() && files[i].getName().matches("^[0-9]{8}.rcd$")) {
 				rcdFiles.add(files[i]);
 			}
 		}
-
 
 		String rcdLine;
 		BufferedReader rcdBr = null;
@@ -63,15 +66,17 @@ public class CalculateSales {
 			try {
 				FileReader rcdFr = new FileReader(rcdFiles.get(i));
 				rcdBr = new BufferedReader(rcdFr);
-				ArrayList<String> codeAndSales = new ArrayList<String>();
+				ArrayList<String> filecontents = new ArrayList<String>();
 
 				while((rcdLine = rcdBr.readLine()) != null) {
-					codeAndSales.add(rcdLine);
+					filecontents.add(rcdLine);
 				}
 
-				String branchCode = codeAndSales.get(0);
-				long sale = Long.parseLong(codeAndSales.get(1));
+				String branchCode = filecontents.get(0);
+				long sale = Long.parseLong(filecontents.get(1));
+
 				Long saleAmount = branchSales.get(branchCode) + sale;
+
 				branchSales.put(branchCode, saleAmount);
 
 			} catch(IOException e) {
@@ -90,13 +95,10 @@ public class CalculateSales {
 			}
 		}
 
-
-
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
 			return;
 		}
-
 	}
 
 	/**
@@ -114,13 +116,6 @@ public class CalculateSales {
 		try {
 			File file = new File(path, fileName);
 
-//			ファイルが存在しなかった場合は終了する処理
-			if(!file.exists()) {
-				System.out.println("支店定義ファイルが存在しません");
-				return false;
-			}
-
-
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
@@ -129,8 +124,10 @@ public class CalculateSales {
 			while((line = br.readLine()) != null) {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
 				String[] items = line.split(",");
+
 				branchNames.put(items[0], items[1]);
 				branchSales.put(items[0], 0L);
+
 			}
 
 		} catch(IOException e) {
@@ -178,17 +175,16 @@ public class CalculateSales {
 			return false;
 		} finally {
 			// ファイルを開いている場合
-						if(bw != null) {
-							try {
-								// ファイルを閉じる
-								bw.close();
-							} catch(IOException e) {
-								System.out.println(UNKNOWN_ERROR);
-								return false;
-							}
-						}
+			if(bw != null) {
+				try {
+					// ファイルを閉じる
+					bw.close();
+				} catch(IOException e) {
+					System.out.println(UNKNOWN_ERROR);
+					return false;
+				}
+			}
 		}
 		return true;
 	}
-
 }
