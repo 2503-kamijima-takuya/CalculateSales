@@ -53,7 +53,7 @@ public class CalculateSales {
 
 		//files配列内の売上ファイルだけをrcdFilesリストへ格納する処理
 		for(int i = 0; i < files.length; i++) {
-			if(files[i].isFile() && files[i].getName().matches("^[0-9]{8}.rcd$")) {
+			if(files[i].isFile() && files[i].getName().matches("^[0-9]{8}[.]rcd$")) {
 				rcdFiles.add(files[i]);
 			}
 		}
@@ -66,14 +66,14 @@ public class CalculateSales {
 			try {
 				FileReader rcdFr = new FileReader(rcdFiles.get(i));
 				rcdBr = new BufferedReader(rcdFr);
-				ArrayList<String> filecontents = new ArrayList<String>();
+				ArrayList<String> fileContents = new ArrayList<String>();
 
 				while((rcdLine = rcdBr.readLine()) != null) {
-					filecontents.add(rcdLine);
+					fileContents.add(rcdLine);
 				}
 
-				String branchCode = filecontents.get(0);
-				long sale = Long.parseLong(filecontents.get(1));
+				String branchCode = fileContents.get(0);
+				long sale = Long.parseLong(fileContents.get(1));
 
 				Long saleAmount = branchSales.get(branchCode) + sale;
 
