@@ -58,6 +58,20 @@ public class CalculateSales {
 			}
 		}
 
+		// 売上ファイルが連番になっているか確認する処理
+		for(int i = 0; i < rcdFiles.size() - 1; i++) {
+
+			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
+			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
+
+		      //⽐較する2つのファイル名の先頭から数字の8⽂字を切り出し、int型に変換します。
+			if((latter - former) != 1) {
+				//2つのファイル名の数字を⽐較して、差が1ではなかったら、エラーメッセージをコンソールに表⽰します。
+				System.out.println("売上ファイル名が連番になっていません");
+				return;
+			}
+		}
+
 		String rcdLine;
 		BufferedReader rcdBr = null;
 
@@ -72,10 +86,34 @@ public class CalculateSales {
 					fileContents.add(rcdLine);
 				}
 
+				// 売上ファイルのフォーマットを確認する処理
+				if(fileContents.size() != 2) {
+					System.out.println("該当ファイル名" + rcdFiles.get(i).getName() + "のフォーマットが不正です");
+					return;
+				}
+
+				// 売上金額が数字なのか確認する処理
+				if(!fileContents.get(1).matches("^[0-9]+$")) {
+					System.out.println(UNKNOWN_ERROR);
+					return;
+				}
+
 				String branchCode = fileContents.get(0);
 				long sale = Long.parseLong(fileContents.get(1));
 
+				// 売上ファイルの支店コードが支店定義ファイルに該当するか確認する処理
+				if (! branchNames.containsKey(branchCode)) {
+					System.out.println("該当ファイル名" + rcdFiles.get(i).getName() + "の支店コードが不正です");
+					return;
+				}
+
 				Long saleAmount = branchSales.get(branchCode) + sale;
+
+				// 売上金額の合計が10桁を超えたか確認する処理
+				if(saleAmount >= 10000000000L){
+					System.out.println("合計金額が10桁を超えました");
+					return;
+				}
 
 				branchSales.put(branchCode, saleAmount);
 
@@ -99,7 +137,9 @@ public class CalculateSales {
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
 			return;
 		}
+
 	}
+
 
 	/**
 	 * 支店定義ファイル読み込み処理
@@ -116,6 +156,12 @@ public class CalculateSales {
 		try {
 			File file = new File(path, fileName);
 
+			// ファイルの存在を確認する処理
+			if(!file.exists()) {
+				System.out.println(FILE_NOT_EXIST);
+				return false;
+			}
+
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
@@ -125,9 +171,14 @@ public class CalculateSales {
 				// ※ここの読み込み処理を変更してください。(処理内容1-2)
 				String[] items = line.split(",");
 
+				// ⽀店定義ファイルのフォーマットを確認する処理
+				if((items.length != 2) || (!items[0].matches("^[0-9]{3}$"))){
+					System.out.println(FILE_INVALID_FORMAT);
+					return false;
+				}
+
 				branchNames.put(items[0], items[1]);
 				branchSales.put(items[0], 0L);
-
 			}
 
 		} catch(IOException e) {
@@ -147,6 +198,7 @@ public class CalculateSales {
 		}
 		return true;
 	}
+
 
 	/**
 	 * 支店別集計ファイル書き込み処理
