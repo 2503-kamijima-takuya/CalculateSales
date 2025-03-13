@@ -66,21 +66,16 @@ public class CalculateSales {
 
 		// 売上ファイルが連番になっているか確認する処理
 		Collections.sort(rcdFiles);
-		if(Integer.parseInt(rcdFiles.get(0).getName().substring(0, 8)) == 1) {
-			for(int i = 0; i < rcdFiles.size() - 1; i++) {
-				int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
-				int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
+		for(int i = 0; i < rcdFiles.size() - 1; i++) {
+			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
+			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
 
-			      //⽐較する2つのファイル名の先頭から数字の8⽂字を切り出し、int型に変換します。
-				if((latter - former) != 1) {
-					//2つのファイル名の数字を⽐較して、差が1ではなかったら、エラーメッセージをコンソールに表⽰します。
-					System.out.println(FILE_NOT_SERIAL_NUMBER);
-					return;
-				}
+		      //⽐較する2つのファイル名の先頭から数字の8⽂字を切り出し、int型に変換します。
+			if((latter - former) != 1) {
+				//2つのファイル名の数字を⽐較して、差が1ではなかったら、エラーメッセージをコンソールに表⽰します。
+				System.out.println(FILE_NOT_SERIAL_NUMBER);
+				return;
 			}
-		} else {
-			System.out.println(FILE_NOT_SERIAL_NUMBER);
-			return;
 		}
 
 		String rcdLine;
@@ -103,15 +98,15 @@ public class CalculateSales {
 					return;
 				}
 
-				// 売上金額が数字なのか確認する処理
-				if(!fileContents.get(1).matches("^[0-9]+$")) {
-					System.out.println(UNKNOWN_ERROR);
-					return;
-				}
-
 				// 売上ファイルの支店コードが支店定義ファイルに該当するか確認する処理
 				if (! branchNames.containsKey(fileContents.get(0))) {
 					System.out.println(rcdFiles.get(i).getName() + FILE_NOT_BRANCH_CODE);
+					return;
+				}
+
+				// 売上金額が数字なのか確認する処理
+				if(!fileContents.get(1).matches("^[0-9]+$")) {
+					System.out.println(UNKNOWN_ERROR);
 					return;
 				}
 
